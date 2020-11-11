@@ -43,6 +43,10 @@ public class BarcodeScanner extends CordovaPlugin {
     private static final String TEXT = "text";
     private static final String DATA = "data";
     private static final String TYPE = "type";
+    private static final String MODE = "mode";
+    private static final String TOTAL = "total";
+    private static final String CURRENT = "current";
+    private static final String PARITY = "parity";
     private static final String PREFER_FRONTCAMERA = "preferFrontCamera";
     private static final String ORIENTATION = "orientation";
     private static final String SHOW_FLIP_CAMERA_BUTTON = "showFlipCameraButton";
@@ -223,6 +227,17 @@ public class BarcodeScanner extends CordovaPlugin {
                     obj.put(TEXT, intent.getStringExtra("SCAN_RESULT"));
                     obj.put(FORMAT, intent.getStringExtra("SCAN_RESULT_FORMAT"));
                     obj.put(CANCELLED, false);
+
+                    // Separated QRCode meta
+                    if (intent.getStringExtra("SCAN_RESULT_FORMAT").equals("QR_CODE")) {
+                        byte[] rawBytes = intent.getByteArrayExtra("SCAN_RESULT_BYTES");
+                        obj.put(MODE, (rawBytes[0] & 0xf0) >> 4);
+                        obj.put(CURRENT, (rawBytes[0] & 0x0f));
+                        obj.put(TOTAL, ((rawBytes[1] & 0xf0) >> 4) + 1);
+                        obj.put(PARITY, ((rawBytes[1] & 0x0f) << 4) | ((rawBytes[2] & 0xf0) >> 4));
+
+                        Log.d(LOG_TAG, obj.toString());
+                    }
                 } catch (JSONException e) {
                     Log.d(LOG_TAG, "This should never happen");
                 }
